@@ -1,8 +1,19 @@
-from fastapi import FastAPI,Response,HTTPException,status
+from fastapi import FastAPI,Response,HTTPException,status,Depends
 import time
 import psycopg2
 from psycopg2.extras import RealDictCursor
 from pydantic import BaseModel
+from sqlalchemy.orm import Session
+from .import models
+from .database import engine , get_db
+
+
+models.Base.metadata.create_all(bind=engine)
+
+
+
+
+
 
 app = FastAPI()
 
@@ -11,6 +22,7 @@ class post(BaseModel):
     content: str
     published: bool=True
 
+#connnecting the database 
 while True:
     try:
         conn = psycopg2.connect(
@@ -29,14 +41,14 @@ while True:
         print("Connection Failed:", error)
         time.sleep(2)
 
-
+#get all posts 
 @app.get("/posts")
 def get_all_post():
     cursor.execute("SELECT * FROM public.post;")
     show = cursor.fetchall()
     return {"data": show}
 
-
+#get a specific post
 @app.get("/posts/{id}")
 def get_one(id: int):
     cursor.execute(
@@ -55,7 +67,7 @@ def get_one(id: int):
     return {"data": post}
 
 
-
+#create a new post
 @app.post("/posts", status_code=status.HTTP_201_CREATED)
 def new_post(post: post):
     cursor.execute(
@@ -72,7 +84,7 @@ def new_post(post: post):
 
     return {"data": new_post}
 
-
+#delete the post
 @app.delete("/posts/{id}", status_code=status.HTTP_200_OK)
 def delete_post(id: int):
     cursor.execute(
@@ -96,7 +108,7 @@ def delete_post(id: int):
 
     return {"data": deleted_post}
 
-
+#update the post
 @app.put("/posts/{id}", status_code=status.HTTP_200_OK)
 def update_post(id: int, post: post):
     cursor.execute(
@@ -121,6 +133,16 @@ def update_post(id: int, post: post):
         )
 
     return {"data": updated_post}
+
+@app.get("/sql")
+def get_database(db: Session = Depends(get_db)):
+    post=db.query(models.Post).all()
+    return {'data': post }
+
+
+
+
+
 
 
    
