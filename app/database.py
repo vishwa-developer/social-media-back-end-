@@ -1,8 +1,21 @@
+from urllib.parse import quote_plus
+
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
-from sqlalchemy.ext.declarative import declarative_base
+from sqlalchemy.orm import declarative_base
 
-SQLALCHEMY_DATABASE_URL = "postgresql+psycopg2://postgres:Vishwa%402004@localhost/postgres"
+from .config import settings
+
+password = quote_plus(settings.database_password)
+
+SQLALCHEMY_DATABASE_URL = (
+    f"postgresql+psycopg2://{settings.database_username}:"
+    f"{password}@"
+    f"{settings.database_hostname}:"
+    f"{settings.database_port}/"
+    f"{settings.database_name}"
+)
+
 engine = create_engine(SQLALCHEMY_DATABASE_URL)
 
 SessionLocal = sessionmaker(
@@ -11,13 +24,12 @@ SessionLocal = sessionmaker(
     bind=engine
 )
 
+Base = declarative_base()
+
 
 def get_db():
-    db=SessionLocal()
+    db = SessionLocal()
     try:
         yield db
     finally:
         db.close()
-
-
-Base = declarative_base()

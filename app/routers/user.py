@@ -5,7 +5,6 @@ from typing import List
 from ..database import get_db
 from .. import schemas, models, utils
 
-
 router = APIRouter(
     prefix="/users",
     tags=["Users"]
@@ -15,14 +14,14 @@ router = APIRouter(
 # Get all users
 @router.get("/", response_model=List[schemas.User])
 def get_all_users(db: Session = Depends(get_db)):
-    users = db.query(models.users).all()
+    users = db.query(models.User).all()
     return users
 
 
 # Get one user
 @router.get("/{id}", response_model=schemas.User)
 def get_one_user(id: int, db: Session = Depends(get_db)):
-    user = db.query(models.users).filter(models.users.id == id).first()
+    user = db.query(models.User).filter(models.User.id == id).first()
 
     if user is None:
         raise HTTPException(
@@ -43,7 +42,7 @@ def create_user(user: schemas.UserCreate, db: Session = Depends(get_db)):
 
     hashed_password = utils.hash(user.password)
 
-    new_user = models.users(
+    new_user = models.User(
         email=user.email,
         password=hashed_password
     )

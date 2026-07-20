@@ -4,12 +4,13 @@ from fastapi import Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordBearer
 
 from . import schemas
+from .config import settings
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="login")
 
-SECRET_KEY = "d284d061a98fd87ce05687e6a3b96b0527a0628c1a6be20e9f6d738516b97c4c"
-ALGORITHM = "HS256"
-ACCESS_TOKEN_EXPIRE_MINUTES = 30
+SECRET_KEY = settings.secret_key
+ALGORITHM = settings.algorithm
+ACCESS_TOKEN_EXPIRE_MINUTES = settings.access_token_expire_minutes
 
 
 def create_access_token(data: dict):
@@ -31,7 +32,6 @@ def create_access_token(data: dict):
 
 
 def verify_token(token: str, credentials_exception):
-
     try:
         payload = jwt.decode(
             token,
@@ -55,7 +55,6 @@ def verify_token(token: str, credentials_exception):
 def get_current_user(
     token: str = Depends(oauth2_scheme)
 ):
-
     credentials_exception = HTTPException(
         status_code=status.HTTP_401_UNAUTHORIZED,
         detail="Could not validate credentials",
